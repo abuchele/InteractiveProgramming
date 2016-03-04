@@ -4,6 +4,11 @@ import numpy as np
 import argparse
 import imutils
 import cv2
+import os, sys
+import pygame
+from pygame.locals import *
+
+
 
 #construct argument parse, parse arguments
 ap= argparse.ArgumentParser()
@@ -23,9 +28,54 @@ counter = 0
 (dX,dY) = (0,0)
 direction = ""
 
+#pull webcam
 camera = cv2.VideoCapture(0)
 
+
+"""Initializing the game and all that"""
+
+pygame.init()
+fpsClock = pygame.time.Clock()
+
+windowSurfaceObj = pygame.display.set_mode((640,480))
+
+catSurfaceObj= pygame.image.load('mouse.png')
+redColor = pygame.Color(255,0,0)
+greenColor = pygame.Color(0,255,0)
+blueColor = pygame.Color(0,0,255)
+whiteColor = pygame.Color(255,255,255)
+mousex,mousey = 0,0
+
+#creating a new event for green movement
+GREENMOVE = pygame.USEREVENT+1
+move_event= pygame.event.Event(GREENMOVE)
+
+#move_down_event = pygame.USEREVENT + 2
+
+
 while True:
+
+	for event in pygame.event.get():
+		if event.type == QUIT:
+			pygame.quit()
+			sys.exit()
+		# elif event.type == MOUSEMOTION:
+		# 		#mousex,mousey = event.pos
+		# 	pass
+		# elif event.type == MOUSEBUTTONUP:
+		# 		#mousex,mousey = event.pos
+		# 	pass
+		# elif event.type == KEYDOWN:
+		# 	pass
+				#pygame.event.post(pygame.event.Event(QUIT))
+		elif event.type == move_event:
+			mousex = mousex + dX
+			mousey = mousey + dY
+			pygame.mouse.set_pos(mousex,mousey)
+			print 'ITs WORKING!'
+
+
+	"""Webcam stuff"""
 	#grab current frame
 	(grabbed,frame)= camera.read()
 
@@ -47,49 +97,62 @@ while True:
 
 	#only proceed if at least one contour was found
 	if len(cnts) > 0:
+
 		#find largest contour in mask, use it to compute 
 		#minimum enclosing circel and centroid
 		c = max(cnts,key=cv2.contourArea)
+
+		# finds approximate shape of object
+		epsilon = 0.01*cv2.arcLength(c,True)
+		approx = cv2.approxPolyDP(c,epsilon,True)
 		((x,y),radius) = cv2.minEnclosingCircle(c)
 		M = cv2.moments(c)
 		center = (int(M["m10"]/M["m00"]), int(M["m01"]/M["m00"]))
 		#only proceed if radius meets minimum size
 		if radius > 10:
-			#draw circle and centroid on frame,
+			#draw contour and centroid on frame,
 			#update list of tracked points
-			cv2.circle(frame,(int(x),int(y)),int(radius),
-				(0,255,255),2)
-			cv2.circle(frame,center,5,(0,0,255), -1)
+			cv2.drawContours(frame,approx,-1, (0,255,0),3)
+			#cv2.circle(frame,(int(x),int(y)),int(radius),
+				#(0,255,255),2)
+			#cv2.circle(frame,center,5,(0,0,255), -1)
 			pts.appendleft(center)
+			counter = counter+1
 	for i in np.arange(1,len(pts)):
 		#if either of the tracked points are None, ignore them
 		if pts[i - 1] is None or pts[i] is None:
 			continue
 
 		#check to see if enough points have been accumulated in the buffer
-		if counter >= 10 and i ==1 and pts[-10] is not None:
-
+		if counter >= 10 and pts[i-10] is not None:
+		#if counter >= 10 and i ==1 and pts[-10] is not None:
 			# compute the difference between the x and y coordinates
 			#re-initialize the direction text variables
-			dX = pts[-10][0] - pts[i][0]
-			dY = pts[-10][1] - pts[i][1]
+			dX = pts[i-10][0] - pts[i][0]
+			dY = pts[i-10][1] - pts[i][1]
 			(dirX,dirY) = ("","")
 
 			#ensure there is significant movement in the x-direction
 			if np.abs(dX) > 20:
-				dirX = "East" if np.sign(dX) == 1 else "West"
+				dirX = "Right" if np.sign(dX) == 1 else "Left"
+				pygame.event.post(move_event)
 
 			#ensure there is significant movement in the y-direction
 			if np.abs(dY) > 20:
-				dirY = "North" if np.sign(dY) == 1 else "South"
+				dirY = "Up" if np.sign(dY) == 1 else "Down"
+				pygame.event.post(move_event)
 
 			# handle when both directions are non-empty
 			if dirX != "" and dirY != "":
 				direction = "{}-{}".format(dirY,dirX)
+				pygame.event.post(move_event)
 
 			#otherwise, only one direction is non-empty
 			else:
 				direction = dirX if dirX != "" else dirY
+				pygame.event.post(move_event)
+
+		
 
 		#otherwise, compute the thickness of the line
 		# draw the connecting lines
@@ -99,12 +162,29 @@ while True:
 	#show the movement deltas and direction of movement on frame
 	cv2.putText(frame,direction,(10,30),cv2.FONT_HERSHEY_SIMPLEX,
 		0.65,(0,0,255),3)
-	cv2.putText(frame,"dx: {}, dy: {}".format(dX,dY),
+	cv2.putText(frame,"dX: {}, dY: {}".format(dX,dY),
 		(10, frame.shape[0]-10), cv2.FONT_HERSHEY_SIMPLEX,
 		0.35,(0,0,255),1)
 
 	cv2.imshow("Frame",frame)
 	key = cv2.waitKey(1) & 0xFF
+
+	#update game
+	pygame.display.update()
+
+
+	"""Game Stuff"""
+
+
+	windowSurfaceObj.fill(whiteColor)
+
+	ball = pygame.draw.circle(windowSurfaceObj,blueColor,(mousex,mousey),20,0)
+
+	#windowSurfaceObj.blit(catSurfaceObj, (mousex,mousey))
+
+
+	
+
 
 
 	#if 'q' is pressed stop the loop
