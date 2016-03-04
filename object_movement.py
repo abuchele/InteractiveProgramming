@@ -14,7 +14,7 @@ from pygame.locals import *
 ap= argparse.ArgumentParser()
 ap.add_argument("-v","--video",
 	help="path to the(optional) video file")
-ap.add_argument("-b", "--buffer", type=int, default=32,
+ap.add_argument("-b", "--buffer", type=int, default=100,
 	help="max buffer size")
 args = vars(ap.parse_args())
 
@@ -34,24 +34,27 @@ camera = cv2.VideoCapture(0)
 
 """Initializing the game and all that"""
 
+#screensize:
+screenwidth= 2000
+screenheight= 2000
 pygame.init()
 fpsClock = pygame.time.Clock()
 
-windowSurfaceObj = pygame.display.set_mode((640,480))
+windowSurfaceObj = pygame.display.set_mode((screenwidth,screenheight))
 
 catSurfaceObj= pygame.image.load('mouse.png')
 redColor = pygame.Color(255,0,0)
 greenColor = pygame.Color(0,255,0)
 blueColor = pygame.Color(0,0,255)
 whiteColor = pygame.Color(255,255,255)
-mousex,mousey = 0,0
+mousex,mousey = (screenwidth/2,screenheight/2)
 
 #creating a new event for green movement
 GREENMOVE = pygame.USEREVENT+1
 move_event= pygame.event.Event(GREENMOVE)
 
-#move_down_event = pygame.USEREVENT + 2
 
+#move_down_event = pygame.USEREVENT + 2
 
 while True:
 
@@ -59,8 +62,9 @@ while True:
 		if event.type == QUIT:
 			pygame.quit()
 			sys.exit()
-		# elif event.type == MOUSEMOTION:
-		# 		#mousex,mousey = event.pos
+		elif event.type == MOUSEMOTION:
+			mousex,mousey = event.pos
+			print (mousex,mousey)
 		# 	pass
 		# elif event.type == MOUSEBUTTONUP:
 		# 		#mousex,mousey = event.pos
@@ -68,12 +72,13 @@ while True:
 		# elif event.type == KEYDOWN:
 		# 	pass
 				#pygame.event.post(pygame.event.Event(QUIT))
-		elif event.type == move_event:
-			mousex = mousex + dX
-			mousey = mousey + dY
+		elif event.type == GREENMOVE:
+			if 0 < (mousex + dX/300) < screenwidth:
+				mousex = mousex + (dX/100)
+			if 0< (mousey + dY/600) < screenheight:
+				mousey = mousey + (dY/600)
 			pygame.mouse.set_pos(mousex,mousey)
-			print 'ITs WORKING!'
-
+			print (mousex,mousey)
 
 	"""Webcam stuff"""
 	#grab current frame
@@ -124,23 +129,24 @@ while True:
 			continue
 
 		#check to see if enough points have been accumulated in the buffer
-		if counter >= 10 and pts[i-10] is not None:
+		buf = 40
+		if counter >= buf and pts[i-buf] is not None:
 		#if counter >= 10 and i ==1 and pts[-10] is not None:
 			# compute the difference between the x and y coordinates
 			#re-initialize the direction text variables
-			dX = pts[i-10][0] - pts[i][0]
-			dY = pts[i-10][1] - pts[i][1]
+			dX = pts[i-buf][0] - pts[i][0]
+			dY = pts[i-buf][1] - pts[i][1]
 			(dirX,dirY) = ("","")
 
 			#ensure there is significant movement in the x-direction
 			if np.abs(dX) > 20:
 				dirX = "Right" if np.sign(dX) == 1 else "Left"
-				pygame.event.post(move_event)
+				
 
 			#ensure there is significant movement in the y-direction
 			if np.abs(dY) > 20:
 				dirY = "Up" if np.sign(dY) == 1 else "Down"
-				pygame.event.post(move_event)
+				
 
 			# handle when both directions are non-empty
 			if dirX != "" and dirY != "":
