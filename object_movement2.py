@@ -69,9 +69,13 @@ while True:
 			if 0 < (mousex + dX/300) < screenwidth:
 				mousex = mousex + (dX/100)
 				pygame.mouse.set_pos(mousex,mousey)
+			if mousex > screenwidth:
+				mousex = screenwidth
 		elif event.type == GREENMOVEV:
-			if 0< (mousey + dY/600) < screenheight:
+			if 0 < (mousey + dY/600) < screenheight:
 				mousey = mousey + (dY/600)
+			if mousey > screenheight:
+				mousey = screenheight
 			pygame.mouse.set_pos(mousex,mousey)
 
 		else:
