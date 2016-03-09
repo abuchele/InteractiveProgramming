@@ -75,7 +75,7 @@ class PygameView(object):
 	def draw(self):
 		"""Draw the game state to the screen"""
 		desktop = DesktopModel()
-		pygame.draw.circle(screen,blueColor,(cursor.x,cursor.y),20,0)
+		pygame.draw.circle(screen,blueColor,(model.cursor.x,model.cursor.y),model.cursor.width,0)
 		pygame.display.update()
 
 class Mouse(object):
@@ -89,7 +89,7 @@ class Mouse(object):
 class DesktopModel(object):
 	"""Stores the fake desktop state"""
 	def __init__(self):
-		cursor = Mouse(100, 100, 25, 25)
+		self.cursor = Mouse(100, 100, 25, 25)
 		self.desktop = screen.fill(whiteColor)
 
 # class OpenCVController(object):
@@ -136,8 +136,6 @@ if __name__ == '__main__':
 
 	size = (screenwidth, screenheight)
 	screen = pygame.display.set_mode(size)
-
-	cursor = Mouse(100, 100, 25, 25)
 
 	# catSurfaceObj= pygame.image.load('mouse.png')
 	# mousex,mousey = (screenwidth/2,screenheight/2)
@@ -197,7 +195,7 @@ if __name__ == '__main__':
 		# (cursor.mousex,cursor.mousey) = center
 
 		# Update the fake pygame desktop
-		# view.draw()
+		view.draw()
 
 		#Eliminates accidental infinity loops by setting a frame limit on runtime.
 		frame += 1
