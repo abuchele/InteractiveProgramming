@@ -92,33 +92,33 @@ class DesktopModel(object):
 		self.cursor = Mouse(100, 100, 25, 25)
 		self.desktop = screen.fill(whiteColor)
 
-# class OpenCVController(object):
-# 	def __init__(self,model):
+class OpenCVController(object):
+	def __init__(self,model):
+		self.model = model
 
-# 		"""Look for left and right Pygame Events"""
-# 		if event.type == QUIT:
-# 			pygame.quit()
-# 			sys.exit()
-# # 		if event.type == MOUSEMOTION:
-# # 			mousex,mousey = event.pos
-# # 		if event.type == GREENMOVEH:
-# # 			if 0 < (mousex + dX/300) < screenwidth:
-# # 				mousex = mousex - (dX/100)
-# # 			if mousex > screenwidth:
-# # 				mousex = screenwidth - 10
-# # 			if mousex < 0:
-# # 				mousex = 10
-# # 			pygame.mouse.set_pos(mousex,mousey)
-# # 		if event.type == GREENMOVEV:
-# # 			if 0 < (mousey + dY/600) < screenheight:
-# # 				mousey = mousey - (dY/600)
-# # 			if mousey > screenheight:
-# # 				mousey = screenheight -10
-# # 			if mousey < 0:
-# # 				mousey = 10
-# # 			pygame.mouse.set_pos(mousex,mousey)
-# 		else:
-# 			continue
+	def getEvent():
+		"""Look for left and right Pygame Events"""
+		if event.type == QUIT:
+			pygame.quit()
+			sys.exit()
+		if event.type == MOUSEMOTION:
+			model.cursor.x,model.cursor.y = event.pos
+		if event.type == GREENMOVEH:
+			if 0 < (mousex + dX/300) < screenwidth:
+				model.cursor.x = model.cursor.x - (dX/100)
+			if model.cursor.x > screenwidth:
+				model.cursor.x = screenwidth - 10
+			if model.cursor.x < 0:
+				model.cursor.x = 10
+			pygame.mouse.set_pos(model.cursor.x,model.cursor.y)
+		if event.type == GREENMOVEV:
+			if 0 < (model.cursor.y + dY/600) < screenheight:
+				model.cursor.y = model.cursor.y - (dY/600)
+			if model.cursor.y > screenheight:
+				model.cursor.y = screenheight -10
+			if model.cursor.y < 0:
+				model.cursor.y = 10
+			pygame.mouse.set_pos(model.cursor.x,model.cursor.y)
 
 if __name__ == '__main__':
 	#Initialize pygame
@@ -142,14 +142,13 @@ if __name__ == '__main__':
 
 	model = DesktopModel()
 	view = PygameView(model, screen)
+	controller = OpenCVController(model)
 
-	# mousex,mousey = (screenwidth/2,screenheight/2)
-
-	# #Create new event for vertical and horizontal green movements
-	# GREENMOVEH = pygame.USEREVENT+1
-	# moveH_event= pygame.event.Event(GREENMOVEH)
-	# GREENMOVEV = pygame.USEREVENT+2
-	# moveV_event= pygame.event.Event(GREENMOVEV)
+	#Create new event for vertical and horizontal green movements
+	GREENMOVEH = pygame.USEREVENT+1
+	moveH_event= pygame.event.Event(GREENMOVEH)
+	GREENMOVEV = pygame.USEREVENT+2
+	moveV_event= pygame.event.Event(GREENMOVEV)
 
 	"""WEBCAM STUFF"""
 
@@ -203,3 +202,7 @@ if __name__ == '__main__':
 			running = False
 
 		time.sleep(.001)
+	if running == False:
+		#release camera, close open windows
+		webcam.camera.release()
+		cv2.destroyAllWindows()
