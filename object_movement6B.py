@@ -194,6 +194,10 @@ if __name__ == '__main__':
 					#minimum buffer length before it
 					dX = webcam.pts[i-buf][0] - webcam.pts[i][0]
 					dY = webcam.pts[i-buf][1] - webcam.pts[i][1]
+					if dX > 20:
+						#CALL HORIZONTAL MOVE EVENT
+					if dY > 20:
+						#call Vertical move event
 
 
 
