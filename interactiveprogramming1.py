@@ -325,13 +325,19 @@ if __name__ == '__main__':
 	frame = 0
 	while running:
 		ballcolor1 = ballcolor1 + random.randint(-10,10)
-		ballcolor2= ballcolor2 + random.randint(-10,10)
+		ballcolor2 = ballcolor2 + random.randint(-10,10)
 		ballcolor3 = ballcolor3 + random.randint(-10,10)
-		ballcolor = (int(ballcolor1),int(ballcolor2),int(ballcolor3))
-		if 0> any(ballcolor) > 255:
-			ballcolor= (100,100,100)
 
-		pygame.draw.circle(screen,(ballcolor1,ballcolor2,ballcolor3),(int(ball.x),int(ball.y)),20,0)
+		ballcolor = (int(ballcolor1),int(ballcolor2),int(ballcolor3))
+		for color in ballcolor:
+			if color > 255 or color < 0:
+				ballcolor = (100, 100, 100)
+				ballcolor1 = 100
+				ballcolor2 = 100
+				ballcolor3 = 100
+
+		print ballcolor
+		pygame.draw.circle(screen,ballcolor,(int(ball.x),int(ball.y)),20,0)
 		#Find the center of any green objects' contours
 
 		gotcenter = webcam.getcenter(greenLower, greenUpper)
@@ -389,7 +395,8 @@ if __name__ == '__main__':
 			cursor.x = calx
 			cursor.y = caly
 		if frame > 500:
-			sys.quit
+			pygame.quit
+			sys.exit()
 			break
 if running == False:
 		#release camera, close open windows
