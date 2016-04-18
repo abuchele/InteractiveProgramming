@@ -1,10 +1,5 @@
-
-"""Emily Yeh and Lydia Zuehsow"""
-
-"""This program allows a person to wave a flashlight or laser pointer to cast spells, Harry Potter-style!"""
-
-"""For future reference, here's a link to our Google doc: https://docs.google.com/document/d/1daGjz8CWycfev0Fs96ru-Na5JNtqs2nVE1fHZ1ydhX0/edit?usp=sharing"""
-
+""" Anna Buchele and Lydia Zuehsow """
+""" This program allows you to control a fake mouse cursor in pygame with a green object and your laptop webcam. """
 
 from collections import deque
 import cv2
@@ -15,7 +10,6 @@ import pygame
 from pygame.locals import *
 import time
 import numpy as np
-import random
 
 class WebCam(object):
 	def __init__(self, bufsize = 100, counter = 0):
@@ -25,11 +19,6 @@ class WebCam(object):
 		self.ap = argparse.ArgumentParser()
 		self.ap.add_argument("-v","--video",
 			help="path to the(optional) video file")
-		self.bufsize = bufsize
-		self.ap.add_argument("-b", "--buffer", type=int, default = 100,
-			help="max buffer size")
-		self.pts = deque(maxlen=bufsize)
-		self.rad = []
 		self.counter = counter
 		self.calpts = deque(maxlen=bufsize)
 		self.calrad = []
@@ -75,49 +64,6 @@ class WebCam(object):
 				center = (int(M["m10"]/M["m00"]), int(M["m01"]/M["m00"]))
 				return [center,radius]
 
-class PygameView(object):
-	"""Visualizes a fake desktop in a pygame window"""
-	def __init__(self,model, screen):
-		"""Initialise the view with a specific model"""
-		self.model = model
-		self.screen = screen
-		redColor = pygame.Color(255,0,0)
-		greenColor = pygame.Color(0,255,0)
-		blueColor = pygame.Color(0,0,255)
-		whiteColor = pygame.Color(255,255,255)
-
-
-	def update(self):
-		"""Draw the game state to the screen"""
-		pygame.display.update()
-
-class Mouse(object):
-	"""Represents the mouse cursor"""
-	def __init__(self, mousex=100, mousey=100):
-		self.x = mousex
-		self.y = mousey
-	def initialsetup(self):
-		pygame.mouse.set_pos(self.x,self.y)
-	def MoveH(self,dY):
-		if 0 < (self.x - dX/300) < screenwidth:
-			self.x = self.x - (dX/100)
-		elif (self.x - dX/300) >= screenwidth:
-			self.x = screenwidth - 10
-		elif (self.x - dX/300) <= 0:
-			self.x = 10
-		pygame.mouse.set_pos(self.x,self.y)
-		ball.select()
-	def MoveV(self,dY):
-		if 0 < (self.y + dY/300) < screenheight:
-			self.y = self.y + (dX/100)
-		elif (self.y + dY/300)>= screenheight:
-			self.y = screenheight - 10
-		elif (self.y + dY/300) <= 0:
-			self.y = 10
-		pygame.mouse.set_pos(self.x,self.y)
-		ball.select()
-
-
 
 class Calibration(object):
 	"""Performs calibration of the 'green thing' and represents the calibrated original "green object" """
@@ -128,26 +74,25 @@ class Calibration(object):
 		calibrating = True
 		count = 0
 		calradi = 0
-		caldx = 0
-		caldy = 0
 		calx = 0
 		caly = 0
-		caldXs=[]
-		caldYs=[]
 		calxs=[]
 		calys=[]
+
 		while calibrating:
 			califind = webcam.getcenter(greenLower, greenUpper)
-			A = "Please hold your object very still"
-			B=	"in the center of the screen."
-			C=  "The system is calibrating."
-			D= "This will only take a moment."
-			cv2.putText(webcam.frame,A,(10,30),cv2.FONT_HERSHEY_SIMPLEX,0.9,(0,0,255),3)
-			cv2.putText(webcam.frame,B,(10,100),cv2.FONT_HERSHEY_SIMPLEX,0.9,(0,0,255),3)
-			cv2.putText(webcam.frame,C,(10,170),cv2.FONT_HERSHEY_SIMPLEX,0.9,(0,0,255),3)
-			cv2.putText(webcam.frame,D,(10,240),cv2.FONT_HERSHEY_SIMPLEX,0.9,(0,0,255),3)
-			if califind == None:
+			cv2.rectangle(webcam.frame, (0,0), (600,450), (0,0,0), -1)
 
+			A = "Please hold your object very still"
+			B =	"in the center of the screen."
+			C = "The system is calibrating."
+			D = "This will only take a moment."
+			cv2.putText(webcam.frame,A,(10,30),cv2.FONT_HERSHEY_SIMPLEX,0.9,(255,255,255),3)
+			cv2.putText(webcam.frame,B,(10,100),cv2.FONT_HERSHEY_SIMPLEX,0.9,(255,255,255),3)
+			cv2.putText(webcam.frame,C,(10,360),cv2.FONT_HERSHEY_SIMPLEX,0.9,(255,255,255),3)
+			cv2.putText(webcam.frame,D,(10,400),cv2.FONT_HERSHEY_SIMPLEX,0.9,(255,255,255),3)
+
+			if califind == None:
 				pass
 			else:
 				calicenter = califind[0]
@@ -169,44 +114,163 @@ class Calibration(object):
 					#compute difference between x and y coordinates of the point and the point
 					#minimum buffer length before it
 					count = count + 1
-					calx= webcam.calpts[i][0]
-					caly= webcam.calpts[i][1]
-					caldX = webcam.calpts[i-buf][0] - webcam.calpts[i][0]
-					caldY = webcam.calpts[i-buf][1] - webcam.calpts[i][1]
-					caldXs.append(caldX)
-					caldYs.append(caldY)
+					calx = webcam.calpts[i][0]
+					caly = webcam.calpts[i][1]
 					calxs.append(calx)
 					calys.append(caly)
+
+					cv2.circle(webcam.frame,(calx,caly),5,(0,0,255), -1)
+
 			cv2.imshow("Frame",webcam.frame)
 			key = cv2.waitKey(1) & 0xFF
 
 			#Eliminates accidental infinity loops by setting a frame limit on runtime.
 
-			if count > 30:
+			if count > 100:
 				calradi = np.mean(webcam.calrad)
-				caldx = np.mean(caldXs)
-				caldy = np.mean(caldYs)
 				calx = np.mean(calxs)
 				caly = np.mean(calys)
-				return [calradi, (caldx,caldy),(calx,caly)]
+				return [calradi, (calx,caly)]
 				running = False
 
-class Ball(object):
-	def __init__(self,color,x=50,y=50,selected=False):
-		self.x = x
-		self.y = y
-		self.color = color
-		self.selected = selected
-	def select(self):
-		if self.selected == True:
-			self.x = cursor.x
-			self.y = cursor.y
+
+class Mouse(object):
+	"""Represents the mouse cursor"""
+	def __init__(self, mousex, mousey):
+		self.x = mousex
+		self.y = mousey
+		self.selected = False
+
+		self.cursorimage = pygame.image.load('mouse.png').convert_alpha()
+		self.cursorimage = pygame.transform.scale(self.cursorimage, (20,30))
+
+		self.selectimage = pygame.image.load('mouseselect.png').convert_alpha()
+		self.selectimage = pygame.transform.scale(self.selectimage, (30,40))
+
+	def initialsetup(self):
+		pygame.mouse.set_pos(self.x,self.y)
+	def Move(self,X,Y):
+		self.x = screenwidth - (X * widthfactor)
+		self.y = (Y * heightfactor)
+
+class Folder(object):
+	"""Represents a folder object stored on the fake desktop"""
+	def __init__(self, folderx, foldery, folderwidth, folderheight):
+		self.x = folderx + (folderwidth/2)
+		self.y = foldery + (folderheight/2)
+
+		self.cornerx = folderx
+		self.cornery = foldery
+
+		self.width = folderwidth
+		self.height = folderheight
+
+		self.selected = False
+
+		self.folderimage = pygame.image.load('folder.png').convert_alpha()
+		self.folderimage = pygame.transform.scale(self.folderimage, (100,75))
+
+		self.text = myfont.render("Cat pics", 1, (0,0,0))
+
+	def Select(self, mousex,mousey):
+		self.x = mousex
+		self.y = mousey
+
+		self.cornerx = mousex - (self.width/2)
+		self.cornery = mousey - (self.height/2)
+
+class Browser(object):
+	"""Represents an open browser window"""
+	def __init__(self):
+		self.width = 300
+		self.height = 200
+
+		self.cornerx = 100
+		self.cornery = 100
+
+		self.x = self.cornerx + (self.width/2)
+		self.y = self.cornery + (self.height/2)
+
+		self.open = False
+		self.selected = False
+
+		self.browserimage = pygame.image.load('browser.png').convert_alpha()
+		self.browserimage = pygame.transform.scale(self.browserimage, (self.width,self.height))
+
+		self.contentimage = pygame.image.load('cat.jpg').convert()
+		self.contentimage = pygame.transform.scale(self.contentimage, (self.width-125,self.height-75))
+
+	def Select(self, mousex,mousey):
+		self.x = mousex - (self.width/2)
+		self.y = mousey - 25
+
+		self.cornerx = mousex
+		self.cornery = mousey
+
+	def Exit(self):
+		print 'Exited program'
+		self.open = False
+		view.update()
 
 
 class DesktopModel(object):
 	"""Stores the fake desktop state"""
 	def __init__(self):
 		self.desktop = screen.fill(whiteColor)
+		self.SelectFrame = 0
+
+		pygame.display.update()
+	def clearscreen(self):
+		self.desktop = screen.fill(whiteColor)
+		pygame.display.update()
+	def DragCheck(self,mousex,mousey,mouseselected,folderx,foldery):
+		if mouseselected == True:
+			# Check to see if mouse is hovering over folder.
+			if (mousex + (folder.width/2)) >= folderx and (mousex - (folder.width/2)) <= folderx and (mousey + (folder.height/2)) >= foldery and (mousey - (folder.height/2)) <= foldery:
+				folder.Select(mousex,mousey)
+				self.SelectFrame += 1
+
+			# Check to see if mouse is hovering over window
+			if mousex >= browser.cornerx and mousex <= (browser.cornerx + browser.width - 150) and mousey >= browser.cornery and mousey <= (browser.cornery + browser.height/2):
+				browser.Select(mousex,mousey)
+
+			print mousex, mousey, browser.cornerx, browser.cornery
+
+			# Check to see if mouse is selecting exit button
+			if mousex <= (browser.cornerx + browser.width + 150) and mousex >= (browser.cornerx + browser.width-100) and mousey >= (browser.cornery+50) and mousey <= (browser.cornery + 150):
+				browser.Exit()
+
+	def SelectCheck(self, mouseselected):
+		if self.SelectFrame >= 1 and self.SelectFrame <= 20 and mouseselected == False:
+			browser.open = True
+
+class PygameView(object):
+	"""Visualizes a fake desktop in a pygame window"""
+	def __init__(self,model, screen):
+		"""Initialise the view with a specific model"""
+		self.model = model
+		self.screen = screen
+		redColor = pygame.Color(255,0,0)
+		greenColor = pygame.Color(0,255,0)
+		blueColor = pygame.Color(0,0,255)
+		whiteColor = pygame.Color(255,255,255)
+
+	def update(self):
+		"""Draw the game state to the screen"""
+		model.clearscreen()
+
+		screen.blit(folder.folderimage,(int(folder.cornerx),int(folder.cornery)))
+		screen.blit(folder.text, (folder.cornerx, folder.cornery + folder.height))
+
+		if browser.open == True:
+			screen.blit(browser.browserimage,(int(browser.x), int(browser.y)))
+			screen.blit(browser.contentimage,(int(browser.x + 50), int(browser.y + 50)))
+
+		if cursor.selected == False:
+			screen.blit(cursor.cursorimage,(int(cursor.x),int(cursor.y)))
+		else:
+			screen.blit(cursor.selectimage,(int(cursor.x),int(cursor.y)))
+
 		pygame.display.update()
 
 class Controller(object):
@@ -218,44 +282,15 @@ class Controller(object):
 			if event.type == QUIT:
 				pygame.quit()
 				sys.exit()
-			elif event.type == GREENMOVEH:
-				# if the event is for horizontal movement,
-				# we pop out the first value of the list of 
-				# dXs, then run the cursor function for horizontal movement
-				dX = dXs.pop(0)
-				cursor.MoveH(dX)
-				pygame.event.post(select_event)
-			elif event.type == GREENMOVEV:
-				# if the event is for vertical movement,
-				# we pop out the first value of the list of 
-				# dYs, then run the cursor function for vertical movement
-				dY = dYs.pop(0)
-				cursor.MoveV(dY)
-				pygame.event.post(select_event)
-			elif event.type == GRID1:
-				print 'Grid 1'
-			elif event.type == GRID2:
-				print 'Grid 2'
-			elif event.type == GRID3:
-				print 'Grid 3'
-			elif event.type == GRID4:
-				print 'Grid 4'
-			elif event.type == GRID5:
-				print 'Grid 5'
-			# elif event.type == GRID6:
-			# 	print 'Grid 6'
-			# elif event.type == GRID7:
-			# 	print 'Grid 7'
-			# elif event.type == GRID8:
-			# 	print 'Grid 8'
-			# elif event.type == GRID9:
-			# 	print 'Grid 9'
+			elif event.type == MOVE:
+				(X,Y) = center
+				cursor.Move(X,Y)
 			elif event.type == SELECT:
-				ball.color=redColor
-				ball.selected = True
-
+				cursor.selected = True
 
 		pygame.event.clear()
+
+
 
 
 if __name__ == '__main__':
@@ -264,6 +299,7 @@ if __name__ == '__main__':
 
 	#Initialize pygame
 	pygame.init()
+	myfont = pygame.font.SysFont("monospace", 15)
 
 	# Define some colors
 	redColor = pygame.Color(255,0,0)
@@ -283,69 +319,53 @@ if __name__ == '__main__':
 	master = Controller(model)
 
 
-
-
 	"""WEBCAM STUFF"""
-
-	#initialize stuff
+	#initialize variables
 
 	running = True
-	ball = Ball(blueColor)
-	ball.selected = False
+
+	cursor = Mouse(100,100)
+	cursor.initialsetup()
+	cursor.selected = False
+
+	folder = Folder(100, 100, 100, 75)
+
+	browser = Browser()
+
 	frame = 0
 	eventcount = 0
 	webcam = WebCam()
 
+	webcamwidth = webcam.camera.get(3)
+	webcamheight = webcam.camera.get(4)
+
+	widthfactor = (screenwidth / webcamwidth) + 0.1
+	heightfactor = (screenheight / webcamheight) + 0.1
+
 	greenLower= (29,86,6)
 	greenUpper= (64,255,255)
 
-	calibrate = Calibration()
-	[calradi,(caldx,caldy),(calx,caly)] = calibrate.startup(greenLower,greenUpper)
-
-	cursor = Mouse(calx,caly)
-	cursor.initialsetup()
+	X = 0
+	Y = 0
 
 	center = 0
+	prevcenter = (0,0)
+	prevradius = 100
+
+	calibrate = Calibration()
+	[calradi,(calx,caly)] = calibrate.startup(greenLower,greenUpper)
+
 	counter = 0
 	calcounter = 0
-	(dX,dY) = (0,0)
-	dXs=[]
-	dYs=[]
-	(caldX,caldY)=(0,0)
-	caldXs=[]
-	caldYs=[]
 
 	# Create new event for vertical and horizontal green movements
-	GREENMOVEH = pygame.USEREVENT+1
-	moveH_event= pygame.event.Event(GREENMOVEH)
-	GREENMOVEV = pygame.USEREVENT+2
-	moveV_event= pygame.event.Event(GREENMOVEV)
+	MOVE = pygame.USEREVENT+2
+	Move_Event = pygame.event.Event(MOVE)
 	SELECT = pygame.USEREVENT+3
-	select_event= pygame.event.Event(SELECT)
-
-	GRID1 = pygame.USEREVENT+4
-	grid1_event = pygame.event.Event(GRID1)
-	GRID2 = pygame.USEREVENT+5
-	grid2_event = pygame.event.Event(GRID2)
-	GRID3 = pygame.USEREVENT+6
-	grid3_event = pygame.event.Event(GRID3)
-	GRID4 = pygame.USEREVENT+7
-	grid4_event = pygame.event.Event(GRID4)
-	GRID5 = pygame.USEREVENT+8
-	grid5_event = pygame.event.Event(GRID5)
-	# GRID6 = pygame.USEREVENT+9
-	# grid6_event = pygame.event.Event(GRID6)
-	# GRID7 = pygame.USEREVENT+10
-	# grid7_event = pygame.event.Event(GRID7)
-	# GRID8 = pygame.USEREVENT+11
-	# grid8_event = pygame.event.Event(GRID8)
-	# GRID9 = pygame.USEREVENT+12
-	# grid9_event = pygame.event.Event(GRID9)
-
-# ,GRID3,GRID4,GRID5,GRID6,GRID7,GRID8,GRID9
+	Select_Event= pygame.event.Event(SELECT)
 
 	# makes sure only the events we want are on the event queue
-	allowed_events = [GREENMOVEV,GREENMOVEH,QUIT,SELECT,GRID1,GRID2,GRID3,GRID4]
+	allowed_events = [MOVE,QUIT,SELECT]
 	pygame.event.set_allowed(allowed_events)
 
 	buf = 10
@@ -358,11 +378,9 @@ if __name__ == '__main__':
 	"""RUNTIME LOOP"""
 
 	#This is the main loop of the program. 
-	ballcolor = random.randint(0,255)
 
 	while running:
 
-		pygame.draw.circle(screen,ballcolor,(int(ball.x),int(ball.y)),20,0)
 		#Find the center of any green objects' contours
 
 		gotcenter = webcam.getcenter(greenLower, greenUpper)
@@ -373,73 +391,43 @@ if __name__ == '__main__':
 			radius = gotcenter[1]
 			cv2.circle(webcam.frame,center,5,(0,0,255), -1)
 
-			cv2.line(webcam.frame, (0,0), (0,450), (255,0,0), 1)
-			cv2.line(webcam.frame, (200,0), (200,450), (255,0,0), 1)
-			cv2.line(webcam.frame, (400,0), (400,450), (255,0,0), 1)
-			cv2.line(webcam.frame, (600,0), (600,450), (255,0,0), 1)
-
-			cv2.line(webcam.frame, (0,0), (600,0), (255,0,0), 1)
-			cv2.line(webcam.frame, (0,150), (600,150), (255,0,0), 1)
-			cv2.line(webcam.frame, (0,300), (600,300), (255,0,0), 1)
-
 			if radius > 20:
 				#if radius is above a certain size we count it
-				webcam.pts.append(center)
-				webcam.rad.append(radius)
+				# webcam.pts.append(center)
+				# webcam.rad.append(radius)
+
 				webcam.counter = webcam.counter + 1
 				counter = webcam.counter
 
 				(x,y) = center
-				print (x,y)
-				if x <= 200 and y <= 150:
-					pygame.event.post(grid1_event)
-				if (x >= 200 and x <= 400) and y <=150:
-					pygame.event.post(grid2_event)
-				if x >= 400 and y <= 150:
-					pygame.event.post(grid3_event)
-				if x <= 200 and (y >= 150 and y <=300):
-					pygame.event.post(grid4_event)
-				if (x >= 200 and x <= 400) and (y >= 150 and y <=300):
-					# pygame.event.post(grid5_event)
-					pygame.event.post(grid5_event)
-				# if x >= 400 and (y >= 150 and y <= 300):
-				# 	pygame.event.post(grid6_event)
-				# if x <= 200 and y >= 300:
-				# 	pygame.event.post(grid7_event)
-				# if (x >= 200 and x <= 400) and y >= 300:
-				# 	pygame.event.post(grid8_event)
-				# if x >= 400 and y >= 300:
-				# 	pygame.event.post(grid9_event)
 
-		for i in range (1,len(webcam.pts)):
-			# ignoring tracked points that are None
-			if webcam.pts[i-1] is None or webcam.pts[i] is None:
-				pass
-			#making sure we have enough points
-			if webcam.counter >= buf and webcam.pts[i-buf] is not None:
-				#compute difference between x and y coordinates of the point and the point
-				#minimum buffer length before it
-				dsX=0
-				dsY=0
-				dX = webcam.pts[i-buf][0] - webcam.pts[i][0]
-				dY = webcam.pts[i-buf][1] - webcam.pts[i][1]
-				if np.abs(dX) > 150:
-					dXs.append(dX-caldx)
-					pygame.event.post(moveH_event)
-				if np.abs(dY) > 150:
-					pygame.event.post(moveV_event)
-					dYs.append(dY-caldy)
-				raddif = webcam.rad[i] - calradi
-				if np.abs(raddif)> (1/2)*calradi:
-					pygame.event.post(select_event)
-			#process the events in the queue
-			master.process_events()
+				if prevcenter is not center:
+					if x <= 0 or x >= screenwidth:
+						x = 0
+						center = (x,y)
+					if y <= 0 or y >= screenheight:
+						y = 0
+						center = (x,y)
+					pygame.event.post(Move_Event)
+					prevcenter = center
+
+				# Checking to see if user is "clicking" on something
+				if radius >= calradi + 15:
+					pygame.event.post(Select_Event)
+				else:
+					cursor.selected = False
+
+		master.process_events()
+		model.DragCheck(cursor.x,cursor.y,cursor.selected,folder.x,folder.y)
+		model.SelectCheck(cursor.selected)
 
 		# Update the frames of the webcam video
+		webcam.frame = cv2.flip(webcam.frame, 1)
 		cv2.imshow("Frame",webcam.frame)
 		key = cv2.waitKey(1) & 0xFF
 
 		frame = frame + 1
+		
 		# Update the fake pygame desktop
 		view.update()
 
@@ -447,13 +435,15 @@ if __name__ == '__main__':
 		time.sleep(.001)
 		if key == ord("q"):
 			break
-		if key == ord("s"):
-			cursor.x = calx
-			cursor.y = caly
+		if key == ord("c"):
+			model.SelectFrame = 0
+
+		# Failsafe shutoff in 500 frames
 		if frame > 500:
 			pygame.quit
 			sys.exit()
 			break
+
 if running == False:
 		#release camera, close open windows
 		webcam.camera.release()
